@@ -1,8 +1,7 @@
 from tortoise.models import Model
 from tortoise import fields
 
-
-class Task(Model):
+class Order(Model):
     id = fields.IntField(pk=True)
     building = fields.ForeignKeyField("models.Building", related_name='tasks', on_delete='CASCADE')
     system = fields.ForeignKeyField("models.System", related_name='tasks')
@@ -12,7 +11,7 @@ class Task(Model):
     creator = fields.ForeignKeyField("models.User", related_name='tasks')
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
-    end_at = fields.DatetimeField(null=True)
+    expected_time = fields.CharField(null=True, max_length=100)
 
     def __str__(self):
         return f'Building: {self.building} \n' \
