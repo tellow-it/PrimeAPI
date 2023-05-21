@@ -17,7 +17,7 @@ register_tortoise(
                         "database.models.status",
                         "database.models.system",
                         "database.models.user",
-                        "database.models.task"]},
+                        "database.models.order"]},
     generate_schemas=True,
     add_exception_handlers=True,
 )
