@@ -10,19 +10,19 @@ router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 @router_order.get("/", response_model=List[OrderSchema])
 async def get_orders():
-    return await OrderSchema.from_queryset(Order.all())
+    return await Order.all()
 
 
 @router_order.post("/create", response_model=OrderSchema, status_code=201)
 async def create_order(order: OrderSchemaCreate):
     order_obj = await Order.create(**order.dict(exclude_unset=True))
-    return await OrderSchema.from_tortoise_orm(order_obj)
+    return order_obj
 
 
 @router_order.get("/{order_id}", response_model=OrderSchema,
                   responses={404: {"model": HTTPNotFoundError}}, status_code=200)
 async def get_order(order_id: int):
-    return await OrderSchema.from_queryset_single(Order.get(id=order_id))
+    return OrderSchema(Order.get(id=order_id))
 
 
 @router_order.put(
@@ -30,7 +30,7 @@ async def get_order(order_id: int):
 )
 async def update_order(order_id: int, order: OrderSchemaUpdate):
     await Order.filter(id=order_id).update(**order.dict(exclude_unset=True))
-    return await OrderSchema.from_queryset_single(Order.get(id=order_id))
+    return OrderSchema(Order.get(id=order_id))
 
 
 @router_order.delete("/delete/{order_id}", responses={404: {"model": HTTPNotFoundError}})

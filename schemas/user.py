@@ -1,7 +1,26 @@
-from tortoise.contrib.pydantic import pydantic_model_creator
-from database.models.user import User
+from pydantic import BaseModel
 
-UserSchema = pydantic_model_creator(User, name='UserSchema')
-UserSchemaCreate = pydantic_model_creator(User, name='UserCreateSchema', exclude=tuple('password'),
-                                          exclude_readonly=True)
-UserSchemaUpdate = pydantic_model_creator(User, name='UserUpdateSchema', exclude_readonly=True)
+
+class UserSchema(BaseModel):
+    id: int
+    name: str
+    surname: str
+    role_id: int
+    password: str
+    telephone: str
+
+
+class UserSchemaCreate(BaseModel):
+    name: str
+    surname: str
+    role_id: int
+    password: str
+    telephone: str
+
+
+class UserSchemaUpdate(BaseModel):
+    name: str
+    surname: str
+    role_id: int
+    password: str
+    telephone: str

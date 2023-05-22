@@ -22,7 +22,7 @@ class Settings:
     POSTGRES_PORT_R: str = os.getenv("POSTGRES_PORT_R")
     POSTGRES_DB_R: str = os.getenv("POSTGRES_DB_R")
     DATABASE_URL_R: str = f"postgres://{POSTGRES_USER_R}:{POSTGRES_PASSWORD_R}" \
-                          f"@{POSTGRES_SERVER_R}:{POSTGRES_PORT_R}/{POSTGRES_DB_R}"
+                          f"@{POSTGRES_SERVER_R}/{POSTGRES_DB_R}"
 
 
 settings = Settings()

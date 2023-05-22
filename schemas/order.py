@@ -1,6 +1,40 @@
-from tortoise.contrib.pydantic import pydantic_model_creator
-from database.models.order import Order
+from typing import Optional
+from pydantic.schema import datetime
+from pydantic import BaseModel
 
-OrderSchema = pydantic_model_creator(Order, name='OrderSchema')
-OrderSchemaCreate = pydantic_model_creator(Order, name='OrderCreateSchema', exclude_readonly=True)
-OrderSchemaUpdate = pydantic_model_creator(Order, name='OrderUpdateSchema', exclude_readonly=True)
+
+class OrderSchema(BaseModel):
+    id: int
+    building_id: int
+    system_id: int
+    important_id: int
+    material: str
+    quantity: int
+    creator_id: int
+    created_at: datetime
+    modified_at: datetime
+    expected_time: Optional[datetime]
+
+
+class OrderSchemaCreate(BaseModel):
+    building_id: int
+    system_id: int
+    important_id: int
+    material: str
+    quantity: int
+    creator_id: int
+    created_at: datetime
+    modified_at: datetime
+    expected_time: Optional[datetime]
+
+
+class OrderSchemaUpdate(BaseModel):
+    building_id: int
+    system_id: int
+    important_id: int
+    material: str
+    quantity: int
+    creator_id: int
+    created_at: datetime
+    modified_at: datetime
+    expected_time: Optional[datetime]
