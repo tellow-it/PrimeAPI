@@ -19,7 +19,7 @@ app.add_middleware(
 )
 register_tortoise(
     app,
-    db_url=settings.DATABASE_URL,
+    db_url=settings.DATABASE_URL_R,
     modules={"models": ["database.models.building",
                         "database.models.important",
                         "database.models.status",
