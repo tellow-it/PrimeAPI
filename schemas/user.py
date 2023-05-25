@@ -1,26 +1,21 @@
+from typing import Optional
+
 from pydantic import BaseModel
+from tortoise.contrib.pydantic import pydantic_model_creator
 
 
 class UserSchema(BaseModel):
+    name: str
+    surname: str
+    role: str
+    password: Optional[str]
+    telephone: str
+
+
+class UserSchemaRead(UserSchema):
     id: int
-    name: str
-    surname: str
-    role_id: int
+
+
+class UserUpdatePassword(BaseModel):
     password: str
-    telephone: str
-
-
-class UserSchemaCreate(BaseModel):
-    name: str
-    surname: str
-    role_id: int
-    password: str
-    telephone: str
-
-
-class UserSchemaUpdate(BaseModel):
-    name: str
-    surname: str
-    role_id: int
-    password: str
-    telephone: str
+    new_password: str

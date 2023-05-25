@@ -1,10 +1,16 @@
-from tortoise.models import Model
-from tortoise import fields
+# from tortoise.models import Model
+# from tortoise import fields
+from enum import Enum
 
 
-class Role(Model):
-    id = fields.IntField(pk=True)
-    role_name = fields.CharField(max_length=200, unique=True, null=False)
+class Roles(str, Enum):
+    admin = "admin"
+    user = "user"
+    advanced_user = "advanced_user"
 
-    def __str__(self):
-        return self.role_name
+# class Role(Model):
+#     id = fields.IntField(pk=True)
+#     role_name = fields.CharEnumField(Roles)
+#
+#     def __str__(self):
+#         return self.role_name

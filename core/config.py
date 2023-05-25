@@ -24,5 +24,8 @@ class Settings:
     DATABASE_URL_R: str = f"postgres://{POSTGRES_USER_R}:{POSTGRES_PASSWORD_R}" \
                           f"@{POSTGRES_SERVER_R}/{POSTGRES_DB_R}"
 
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM")
+
 
 settings = Settings()
