@@ -2,14 +2,17 @@ from tortoise.models import Model
 from tortoise import fields
 
 
+
+
 class Order(Model):
     id = fields.IntField(pk=True)
-    building = fields.ForeignKeyField("models.Building", related_name='tasks', on_delete='CASCADE')
-    system = fields.ForeignKeyField("models.System", related_name='tasks')
-    important = fields.ForeignKeyField("models.Important", related_name='tasks')
+    building = fields.ForeignKeyField("models.Building", related_name='orders',
+                                                                           on_delete='CASCADE')
+    system = fields.ForeignKeyField("models.System", related_name='orders')
+    important = fields.ForeignKeyField("models.Important", related_name='orders')
     material = fields.TextField(null=False)
     quantity = fields.IntField(null=False)
-    creator = fields.ForeignKeyField("models.User", related_name='tasks')
+    creator = fields.ForeignKeyField("models.User", related_name='orders')
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
     expected_time = fields.DatetimeField(null=False)
