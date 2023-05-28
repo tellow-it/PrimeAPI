@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from schemas.status import StatusSchema, StatusSchemaUpdate, StatusSchemaCreate
 from database.models.status import Status
+from utils.permission import PermissionChecker
 
 router_status = APIRouter(prefix="/status", tags=["Statuses"])
 
@@ -19,7 +20,8 @@ async def get_statuses(token: HTTPAuthorizationCredentials = Depends(auth_schema
 
 @router_status.post("/create", response_model=StatusSchema, status_code=201)
 async def create_status(status: StatusSchemaCreate,
-                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                        token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                        permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     status_obj = await Status.create(**status.dict(exclude_unset=True))
     return await StatusSchema.from_tortoise_orm(status_obj)
 
@@ -35,14 +37,16 @@ async def get_status(status_id: int,
     "/update/{status_id}", response_model=StatusSchema, responses={404: {"model": HTTPNotFoundError}}
 )
 async def update_status(status_id: int, status: StatusSchemaUpdate,
-                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                        token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                        permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     await Status.filter(id=status_id).update(**status.dict(exclude_unset=True))
     return await StatusSchema.from_queryset_single(Status.get(id=status_id))
 
 
 @router_status.delete("/delete/{status_id}", responses={404: {"model": HTTPNotFoundError}})
 async def delete_status(status_id: int,
-                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                        token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                        permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     deleted_count = await Status.filter(id=status_id).delete()
     if not deleted_count:
         raise HTTPException(status_code=404, detail=f"Status {status_id} not found")

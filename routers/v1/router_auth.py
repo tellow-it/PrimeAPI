@@ -7,7 +7,7 @@ from database.models.status import Status
 from schemas.auth import LoginSchema, TokenSchema
 from utils.hash_password import verify_password
 from utils.jwt import create_access_token, decode_access_token
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 auth_schema = HTTPBearer()
 
@@ -29,5 +29,5 @@ async def login(login_data: LoginSchema):
 
 
 @router_auth.post("/user_data_by_token", status_code=200)
-async def get_data_by_token(token: str = Depends(auth_schema)):
+async def get_data_by_token(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     return decode_access_token(token)

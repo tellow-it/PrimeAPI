@@ -9,18 +9,20 @@ from tortoise.contrib.fastapi import HTTPNotFoundError
 
 from schemas.important import ImportantSchema, ImportantSchemaCreate, ImportantSchemaUpdate
 from database.models.important import Important
+from utils.permission import PermissionChecker
 
 router_important = APIRouter(prefix="/important", tags=["Important"])
 
 
 @router_important.get("/", response_model=List[ImportantSchema])
-async def get_important_s(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+async def get_important_s(token: HTTPAuthorizationCredentials = Depends(auth_schema),):
     return await ImportantSchema.from_queryset(Important.all())
 
 
 @router_important.post("/create", response_model=ImportantSchema, status_code=201)
 async def create_important(important: ImportantSchemaCreate,
-                           token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                           token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                           permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     important_obj = await Important.create(**important.dict(exclude_unset=True))
     return await ImportantSchema.from_tortoise_orm(important_obj)
 
@@ -37,14 +39,16 @@ async def get_important(building_id: int,
 )
 async def update_important(building_id: int,
                            building: ImportantSchemaUpdate,
-                           token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                           token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                           permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     await Important.filter(id=building_id).update(**building.dict(exclude_unset=True))
     return await ImportantSchema.from_queryset_single(Important.get(id=building_id))
 
 
 @router_important.delete("/delete/{important_id}", responses={404: {"model": HTTPNotFoundError}})
 async def delete_building(important_id: int,
-                          token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+                          token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                          permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     deleted_count = await Important.filter(id=important_id).delete()
     if not deleted_count:
         raise HTTPException(status_code=404, detail=f"Important {important_id} not found")
