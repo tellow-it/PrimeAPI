@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -17,9 +17,11 @@ router_user = APIRouter(prefix="/user", tags=["Users"])
 
 
 @router_user.get("/", response_model=List[UserSchemaRead])
-async def get_users(token: HTTPAuthorizationCredentials = Depends(auth_schema),
+async def get_users(on_page: Optional[int] = 0,
+                    page: Optional[int] = 0,
+                    token: HTTPAuthorizationCredentials = Depends(auth_schema),
                     permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    return await User.all()
+    return await User.all().offset(page * on_page).limit(on_page)
 
 
 @router_user.post("/create", response_model=UserSchema, status_code=201)
