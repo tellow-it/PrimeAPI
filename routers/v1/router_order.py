@@ -5,7 +5,6 @@ from schemas.response import Status
 from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from schemas.order import OrderSchema, OrderSchemaRead, normal_prefetch
-from schemas.paginate import PaginateSchema
 from database.models.order import Order
 from utils.jwt import decode_access_token
 from utils.permission import PermissionChecker

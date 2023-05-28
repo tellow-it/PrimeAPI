@@ -1,9 +1,5 @@
-from typing import List
-from schemas.response import Status
 from fastapi import APIRouter, HTTPException, Depends
-from tortoise.contrib.fastapi import HTTPNotFoundError
 from database.models.user import User
-from database.models.status import Status
 from schemas.auth import LoginSchema, TokenSchema
 from utils.hash_password import verify_password
 from utils.jwt import create_access_token, decode_access_token
