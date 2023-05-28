@@ -39,7 +39,7 @@ async def get_orders(on_page: Optional[int] = 0,
         return order_list
 
 
-@router_order.get("/{user_id}", response_model=List, status_code=200)
+@router_order.get("/for-user/{user_id}", response_model=List, status_code=200)
 async def get_orders_by_user_id(user_id: int,
                                 on_page: Optional[int] = 0,
                                 page: Optional[int] = 0,
