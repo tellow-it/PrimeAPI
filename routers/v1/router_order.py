@@ -76,8 +76,6 @@ async def create_order(order: OrderSchema,
 
 @router_order.get("/{order_id}", responses={404: {"model": HTTPNotFoundError}}, status_code=200)
 async def get_order(order_id: int,
-                    on_page: Optional[int] = 0,
-                    page: Optional[int] = 0,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
