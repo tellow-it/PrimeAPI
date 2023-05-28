@@ -1,5 +1,7 @@
 from typing import List, Optional
 from fastapi.security import HTTPAuthorizationCredentials
+from tortoise.expressions import Q
+
 from routers.v1.router_auth import auth_schema
 from schemas.response import Status
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -9,19 +11,27 @@ from database.models.order import Order
 from utils.jwt import decode_access_token
 from utils.permission import PermissionChecker
 
+
 router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 
 @router_order.get("/", response_model=List, status_code=200)
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
+                     search_by_material: Optional[str] = None,
                      token: HTTPAuthorizationCredentials = Depends(auth_schema),
+
                      ):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        orders = await Order.all().offset(page * on_page).limit(
-            on_page).prefetch_related("building", "important",
-                                      "creator", "system")
+        if search_by_material is not None:
+            orders = await Order.filter(material__contains=f'{search_by_material}').all().offset(page * on_page).limit(
+                on_page).prefetch_related("building", "important",
+                                          "creator", "system")
+        else:
+            orders = await Order.all().offset(page * on_page).limit(
+                on_page).prefetch_related("building", "important",
+                                          "creator", "system")
         order_list = []
         for order in orders:
             order_info = normal_prefetch(order)

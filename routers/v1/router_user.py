@@ -19,9 +19,13 @@ router_user = APIRouter(prefix="/user", tags=["Users"])
 @router_user.get("/", response_model=List[UserSchemaRead])
 async def get_users(on_page: Optional[int] = 10,
                     page: Optional[int] = 0,
+                    search_by_surname: Optional[str] = None,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema),
                     permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    return await User.all().offset(page * on_page).limit(on_page)
+    if search_by_surname is not None:
+        return await User.filter(surname__contains=search_by_surname).all().offset(page * on_page).limit(on_page)
+    else:
+        return await User.all().offset(page * on_page).limit(on_page)
 
 
 @router_user.post("/create", response_model=UserSchema, status_code=201)
