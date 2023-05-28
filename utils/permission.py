@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -11,7 +13,7 @@ def get_current_user(token: HTTPAuthorizationCredentials = Depends(auth_schema))
 
 class PermissionChecker:
 
-    def __init__(self, required_permissions: list[str]) -> None:
+    def __init__(self, required_permissions: List[str]) -> None:
         self.required_permissions = required_permissions
 
     def __call__(self, user=Depends(get_current_user)) -> bool:
