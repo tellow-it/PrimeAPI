@@ -17,7 +17,7 @@ router_user = APIRouter(prefix="/user", tags=["Users"])
 
 
 @router_user.get("/", response_model=List[UserSchemaRead])
-async def get_users(on_page: Optional[int] = 0,
+async def get_users(on_page: Optional[int] = 10,
                     page: Optional[int] = 0,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema),
                     permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):

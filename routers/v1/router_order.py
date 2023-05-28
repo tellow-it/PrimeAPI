@@ -13,7 +13,7 @@ router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 
 @router_order.get("/", response_model=List, status_code=200)
-async def get_orders(on_page: Optional[int] = 0,
+async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
                      token: HTTPAuthorizationCredentials = Depends(auth_schema),
                      ):
@@ -41,7 +41,7 @@ async def get_orders(on_page: Optional[int] = 0,
 
 @router_order.get("/for-user/{user_id}", response_model=List, status_code=200)
 async def get_orders_by_user_id(user_id: int,
-                                on_page: Optional[int] = 0,
+                                on_page: Optional[int] = 10,
                                 page: Optional[int] = 0,
                                 token: HTTPAuthorizationCredentials = Depends(auth_schema),
                                 permission: bool = Depends(
