@@ -8,6 +8,4 @@ router_role = APIRouter(prefix="/role", tags=["Roles"])
 
 @router_role.get("/")
 async def get_roles(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return {"roles": {"admin": Roles.admin.name,
-                      "user": Roles.user.name,
-                      "advanced_user": Roles.advanced_user.name}}
+    return {"roles": [Roles.admin.name, Roles.user.name, Roles.advanced_user.name]}

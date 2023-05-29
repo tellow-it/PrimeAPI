@@ -1,7 +1,6 @@
 from typing import Optional
-
+from pydantic.schema import datetime
 from pydantic import BaseModel
-from tortoise.contrib.pydantic import pydantic_model_creator
 
 
 class UserSchema(BaseModel):
@@ -10,6 +9,7 @@ class UserSchema(BaseModel):
     role: str
     password: Optional[str]
     telephone: str
+    created_at: datetime
 
 
 class UserSchemaRead(UserSchema):
