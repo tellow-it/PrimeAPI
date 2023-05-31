@@ -11,7 +11,6 @@ from database.models.order import Order
 from utils.jwt import decode_access_token
 from utils.permission import PermissionChecker
 
-
 router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 
@@ -26,12 +25,10 @@ async def get_orders(on_page: Optional[int] = 10,
     if user_info['role'] == 'admin':
         if search_by_material is not None:
             orders = await Order.filter(material__contains=f'{search_by_material}').all().offset(page * on_page).limit(
-                on_page).prefetch_related("building", "important",
-                                          "creator", "system")
+                on_page).prefetch_related("building", "important", "creator", "system", "status")
         else:
             orders = await Order.all().offset(page * on_page).limit(
-                on_page).prefetch_related("building", "important",
-                                          "creator", "system")
+                on_page).prefetch_related("building", "important", "creator", "system", "status")
         order_list = []
         for order in orders:
             order_info = normal_prefetch(order)
@@ -39,9 +36,8 @@ async def get_orders(on_page: Optional[int] = 10,
         return order_list
     else:
         orders = await Order.filter(creator_id=user_info['id']). \
-            offset(page * on_page).limit(on_page).prefetch_related("building",
-                                                                   "important",
-                                                                   "creator", "system")
+            offset(page * on_page).limit(on_page).prefetch_related("building", "important", "creator", "system",
+                                                                   "status")
         order_list = []
         for order in orders:
             order_info = normal_prefetch(order)
@@ -59,7 +55,7 @@ async def get_orders_by_user_id(user_id: int,
                                 ):
     orders = await Order.all().filter(creator_id=user_id).offset(page * on_page).limit(
         on_page).prefetch_related("building", "important",
-                                  "creator", "system")
+                                  "creator", "system", "status")
     order_list = []
     for order in orders:
         order_info = normal_prefetch(order)
@@ -89,10 +85,10 @@ async def get_order(order_id: int,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system")
+        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system", "status")
         return normal_prefetch(order)
     else:
-        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system")
+        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system", "status")
         if user_info['id'] == order.creator.id:
             return normal_prefetch(order)
         else:

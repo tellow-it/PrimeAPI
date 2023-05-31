@@ -29,20 +29,20 @@ async def create_important(important: ImportantSchemaCreate,
 
 @router_important.get("/{important_id}", response_model=ImportantSchema,
                       responses={404: {"model": HTTPNotFoundError}}, status_code=200)
-async def get_important(building_id: int,
+async def get_important(important_id: int,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await ImportantSchema.from_queryset_single(Important.get(id=building_id))
+    return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
 
 
 @router_important.put(
     "/update/{important_id}", response_model=ImportantSchema, responses={404: {"model": HTTPNotFoundError}}
 )
-async def update_important(building_id: int,
-                           building: ImportantSchemaUpdate,
+async def update_important(important_id: int,
+                           important: ImportantSchemaUpdate,
                            token: HTTPAuthorizationCredentials = Depends(auth_schema),
                            permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    await Important.filter(id=building_id).update(**building.dict(exclude_unset=True))
-    return await ImportantSchema.from_queryset_single(Important.get(id=building_id))
+    await Important.filter(id=important_id).update(**important.dict(exclude_unset=True))
+    return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
 
 
 @router_important.delete("/delete/{important_id}", responses={404: {"model": HTTPNotFoundError}})

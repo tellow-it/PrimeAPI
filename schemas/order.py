@@ -10,6 +10,7 @@ class OrderSchema(BaseModel):
     material: str
     quantity: int
     creator_id: int
+    status_id: int
     created_at: datetime
     modified_at: datetime
     expected_time: Optional[datetime]
@@ -36,6 +37,8 @@ def normal_prefetch(order):
                     "role": order.creator.role,
                     "telephone": order.creator.telephone
                     },
+        'status': {'id': order.status.id,
+                   'status_name': order.status.status_name},
         'created_at': order.created_at,
         'modified_at': order.modified_at,
         'expected_time': order.expected_time
