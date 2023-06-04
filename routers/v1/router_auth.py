@@ -37,4 +37,5 @@ async def get_data_by_token(token: HTTPAuthorizationCredentials = Depends(auth_s
 @router_auth.post("/refresh", status_code=200)
 async def get_new_access_token(refresh_token: HTTPAuthorizationCredentials):
     token_data = decode_refresh_token(token=refresh_token)
-    return create_access_token(token_data)
+    return {"access_token": create_access_token(token_data),
+            "token_type": "Bearer"}
