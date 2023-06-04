@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 
-class Status(BaseModel):
+class StatusResponse(BaseModel):
     message: str

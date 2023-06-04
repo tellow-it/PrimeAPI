@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi.security import HTTPAuthorizationCredentials
 
-from schemas.response import Status
+from schemas.response import StatusResponse
 from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from utils.generate_password import generate_password
@@ -85,4 +85,4 @@ async def delete_user(user_id: int,
     deleted_count = await User.filter(id=user_id).delete()
     if not deleted_count:
         raise HTTPException(status_code=404, detail=f"User {user_id} not found")
-    return Status(message=f"Success delete {user_id}")
+    return StatusResponse(message=f"Success delete {user_id}")

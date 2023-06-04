@@ -1,9 +1,10 @@
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi.security import HTTPAuthorizationCredentials
-from tortoise.expressions import Q
 
+from database.models.status import Status
 from routers.v1.router_auth import auth_schema
-from schemas.response import Status
+from schemas.response import StatusResponse
 from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from schemas.order import OrderSchema, OrderSchemaRead, normal_prefetch
@@ -24,20 +25,25 @@ async def get_orders(on_page: Optional[int] = 10,
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
         if search_by_material is not None:
-            orders = await Order.filter(material__contains=f'{search_by_material}').all().offset(page * on_page).limit(
-                on_page).prefetch_related("building", "important", "creator", "system", "status")
+            orders = await Order.filter(material__contains=f'{search_by_material}').all().offset(page * on_page).\
+                limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
         else:
-            orders = await Order.all().offset(page * on_page).limit(
-                on_page).prefetch_related("building", "important", "creator", "system", "status")
+            orders = await Order.all().offset(page * on_page).\
+                limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
         order_list = []
         for order in orders:
             order_info = normal_prefetch(order)
             order_list.append(order_info)
         return order_list
     else:
-        orders = await Order.filter(creator_id=user_info['id']). \
-            offset(page * on_page).limit(on_page).prefetch_related("building", "important", "creator", "system",
-                                                                   "status")
+        if search_by_material is not None:
+            orders = await Order.filter(creator_id=user_info['id']).filter(
+                material__contains=f'{search_by_material}').all().offset(page * on_page). \
+                limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
+        else:
+            orders = await Order.filter(creator_id=user_info['id']). \
+                offset(page * on_page).limit(on_page).prefetch_related("building", "important", "creator", "system",
+                                                                       "status")
         order_list = []
         for order in orders:
             order_info = normal_prefetch(order)
@@ -69,10 +75,12 @@ async def create_order(order: OrderSchema,
                        ):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
+        order.modified_at = datetime.now(timezone.utc)
         order_obj = await Order.create(**order.dict(exclude_unset=True))
         return order_obj
     else:
         if user_info['id'] == order.creator_id:
+            order.modified_at = datetime.now(timezone.utc)
             order_obj = await Order.create(**order.dict(exclude_unset=True))
             return order_obj
         else:
@@ -107,13 +115,40 @@ async def update_order(order_id: int,
     if user_info['role'] == 'advanced_user':
         order_obj = await Order.get(id=order_id).prefetch_related('creator')
         if user_info['id'] == order_obj.creator.id:
+            order.modified_at = datetime.now(timezone.utc)
             await Order.filter(id=order_id).update(**order.dict(exclude_unset=True))
             return await Order.get(id=order_id)
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail='The user does not have access to the resource')
     else:
+        order.modified_at = datetime.now(timezone.utc)
         await Order.filter(id=order_id).update(**order.dict(exclude_unset=True))
+        return await Order.get(id=order_id)
+
+
+@router_order.patch(
+    "/update-status/{order_id}", response_model=OrderSchemaRead, responses={404: {"model": HTTPNotFoundError}}
+)
+async def update_status_order(order_id: int,
+                              status_id: int,
+                              token: HTTPAuthorizationCredentials = Depends(auth_schema),
+                              permission: bool = Depends(
+                                  PermissionChecker(required_permissions=['admin', 'advanced_user']))):
+    user_info = decode_access_token(token)
+    status_obj = await Status.get(id=status_id)
+    order_obj = await Order.get(id=order_id)
+    if user_info['role'] == 'advanced_user':
+        if user_info['id'] == order_obj.creator.id:
+            await order_obj.update_from_dict({'status_id': status_id,
+                                              'modified_at': datetime.now()}).save()
+            return await Order.get(id=order_id)
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail='The user does not have access to the resource')
+    else:
+        await order_obj.update_from_dict({'status_id': status_id,
+                                          'modified_at': datetime.now()}).save()
         return await Order.get(id=order_id)
 
 
@@ -133,4 +168,4 @@ async def delete_order(order_id: int,
                                 detail='The user does not have access to the resource')
     if not deleted_count:
         raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
-    return Status(message=f"Success delete {order_id}")
+    return StatusResponse(message=f"Success delete {order_id}")

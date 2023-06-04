@@ -24,8 +24,26 @@ class Settings:
     DATABASE_URL_R: str = f"postgres://{POSTGRES_USER_R}:{POSTGRES_PASSWORD_R}" \
                           f"@{POSTGRES_SERVER_R}/{POSTGRES_DB_R}"
 
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
+    JWT_ACCESS_SECRET_KEY: str = os.getenv("JWT_ACCESS_SECRET_KEY")
+    JWT_REFRESH_SECRET_KEY: str = os.getenv("JWT_REFRESH_SECRET_KEY")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM")
 
 
 settings = Settings()
+
+
+TORTOISE_ORM = {
+    "connections": {"default": settings.DATABASE_URL_R},
+    "apps": {
+        "models": {
+            "models": ["database.models.building",
+                        "database.models.important",
+                        "database.models.status",
+                        "database.models.system",
+                        "database.models.user",
+                        "database.models.order",
+                        "aerich.models"],
+            "default_connection": "default",
+        },
+    },
+}

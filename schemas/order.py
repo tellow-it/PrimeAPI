@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import Optional
 from pydantic.schema import datetime
 from pydantic import BaseModel
@@ -11,13 +12,13 @@ class OrderSchema(BaseModel):
     quantity: int
     creator_id: int
     status_id: int
-    created_at: datetime
-    modified_at: datetime
-    expected_time: Optional[datetime]
+    expected_time: Optional[datetime] = None
 
 
 class OrderSchemaRead(OrderSchema):
     id: int
+    created_at: datetime
+    modified_at: datetime
 
 
 def normal_prefetch(order):

@@ -11,9 +11,9 @@ class Order(Model):
     quantity = fields.IntField(null=False)
     creator = fields.ForeignKeyField("models.User", related_name='orders')
     status = fields.ForeignKeyField("models.Status", related_name='orders')
-    created_at = fields.DatetimeField(auto_now_add=True)
-    modified_at = fields.DatetimeField(auto_now=True)
-    expected_time = fields.DatetimeField(null=False)
+    created_at = fields.DatetimeField(null=True, auto_now_add=True)
+    modified_at = fields.DatetimeField(null=True, auto_now=True)
+    expected_time = fields.DatetimeField(null=True)
 
     def __str__(self):
         return f'Building: {self.building} \n' \

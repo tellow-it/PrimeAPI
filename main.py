@@ -20,6 +20,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
 register_tortoise(
     app,
     db_url=settings.DATABASE_URL_R,
@@ -28,12 +29,13 @@ register_tortoise(
                         "database.models.status",
                         "database.models.system",
                         "database.models.user",
-                        "database.models.order"]},
+                        "database.models.order",
+                        "aerich.models"]},
     generate_schemas=True,
     add_exception_handlers=True,
 )
 
 
-@app.exception_handler(Exception)
-async def internal_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))
+# @app.exception_handler(Exception)
+# async def internal_exception_handler(request: Request, exc: Exception):
+#     return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))

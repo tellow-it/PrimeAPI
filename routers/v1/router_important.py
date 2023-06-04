@@ -3,7 +3,7 @@ from typing import List
 from fastapi.security import HTTPAuthorizationCredentials
 
 from routers.v1.router_auth import auth_schema
-from schemas.response import Status
+from schemas.response import StatusResponse
 from fastapi import APIRouter, HTTPException, Depends
 from tortoise.contrib.fastapi import HTTPNotFoundError
 
@@ -52,4 +52,4 @@ async def delete_building(important_id: int,
     deleted_count = await Important.filter(id=important_id).delete()
     if not deleted_count:
         raise HTTPException(status_code=404, detail=f"Important {important_id} not found")
-    return Status(message=f"Success delete {important_id}")
+    return StatusResponse(message=f"Success delete {important_id}")
