@@ -50,7 +50,7 @@ async def get_orders(on_page: Optional[int] = 10,
         order_info = normal_prefetch(order)
         order_list.append(order_info)
     return {"quantity_orders": quantity_orders,
-            "orders": orders}
+            "orders": order_list}
 
 
 @router_order.get("/for-user/{user_id}", status_code=200)
