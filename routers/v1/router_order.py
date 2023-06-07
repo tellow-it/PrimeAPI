@@ -15,7 +15,7 @@ from utils.permission import PermissionChecker
 router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 
-@router_order.get("/", response_model=List, status_code=200)
+@router_order.get("/", status_code=200)
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
                      search_by_material: Optional[str] = None,
@@ -25,33 +25,35 @@ async def get_orders(on_page: Optional[int] = 10,
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
         if search_by_material is not None:
-            orders = await Order.filter(material__contains=f'{search_by_material}').all().offset(page * on_page).\
-                limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
+            quantity_orders = await Order.filter(material__icontains=f'{search_by_material}').all().count()
+            orders = await Order.filter(material__icontains=f'{search_by_material}').all(). \
+                order_by("-modified_at").offset(page * on_page).limit(on_page). \
+                prefetch_related("building", "important", "creator", "system", "status")
         else:
-            orders = await Order.all().offset(page * on_page).\
+            quantity_orders = await Order.all().count()
+            orders = await Order.all().order_by("-modified_at").offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
-        order_list = []
-        for order in orders:
-            order_info = normal_prefetch(order)
-            order_list.append(order_info)
-        return order_list
     else:
         if search_by_material is not None:
+            quantity_orders = await Order.filter(creator_id=user_info['id']).filter(
+                material__contains=f'{search_by_material}').all().count()
             orders = await Order.filter(creator_id=user_info['id']).filter(
-                material__contains=f'{search_by_material}').all().offset(page * on_page). \
+                material__contains=f'{search_by_material}').all().order_by("-modified_at").offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
         else:
-            orders = await Order.filter(creator_id=user_info['id']). \
-                offset(page * on_page).limit(on_page).prefetch_related("building", "important", "creator", "system",
-                                                                       "status")
-        order_list = []
-        for order in orders:
-            order_info = normal_prefetch(order)
-            order_list.append(order_info)
-        return order_list
+            quantity_orders = await Order.filter(creator_id=user_info['id']).count()
+            orders = await Order.filter(creator_id=user_info['id']).order_by("-modified_at"). \
+                offset(page * on_page).limit(on_page). \
+                prefetch_related("building", "important", "creator", "system", "status")
+    order_list = []
+    for order in orders:
+        order_info = normal_prefetch(order)
+        order_list.append(order_info)
+    return {"quantity_orders": quantity_orders,
+            "orders": orders}
 
 
-@router_order.get("/for-user/{user_id}", response_model=List, status_code=200)
+@router_order.get("/for-user/{user_id}", status_code=200)
 async def get_orders_by_user_id(user_id: int,
                                 on_page: Optional[int] = 10,
                                 page: Optional[int] = 0,
@@ -59,14 +61,15 @@ async def get_orders_by_user_id(user_id: int,
                                 permission: bool = Depends(
                                     PermissionChecker(required_permissions=['admin']))
                                 ):
-    orders = await Order.all().filter(creator_id=user_id).offset(page * on_page).limit(
-        on_page).prefetch_related("building", "important",
-                                  "creator", "system", "status")
+    quantity_orders = await Order.all().filter(creator_id=user_id).count()
+    orders = await Order.all().filter(creator_id=user_id).order_by("-modified_at").offset(page * on_page).\
+        limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
     order_list = []
     for order in orders:
         order_info = normal_prefetch(order)
         order_list.append(order_info)
-    return order_list
+    return {"quantity_orders": quantity_orders,
+            "order_list": order_list}
 
 
 @router_order.post("/create", response_model=OrderSchemaRead, status_code=201)
@@ -75,12 +78,10 @@ async def create_order(order: OrderSchema,
                        ):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        order.modified_at = datetime.now(timezone.utc)
         order_obj = await Order.create(**order.dict(exclude_unset=True))
         return order_obj
     else:
         if user_info['id'] == order.creator_id:
-            order.modified_at = datetime.now(timezone.utc)
             order_obj = await Order.create(**order.dict(exclude_unset=True))
             return order_obj
         else:
@@ -112,18 +113,18 @@ async def update_order(order_id: int,
                        token: HTTPAuthorizationCredentials = Depends(auth_schema),
                        permission: bool = Depends(PermissionChecker(required_permissions=['admin', 'advanced_user']))):
     user_info = decode_access_token(token)
+    order_dict = order.dict(exclude_unset=True)
+    order_dict["modified_at"] = datetime.now(timezone.utc)
     if user_info['role'] == 'advanced_user':
         order_obj = await Order.get(id=order_id).prefetch_related('creator')
         if user_info['id'] == order_obj.creator.id:
-            order.modified_at = datetime.now(timezone.utc)
-            await Order.filter(id=order_id).update(**order.dict(exclude_unset=True))
+            await Order.filter(id=order_id).update(**order_dict)
             return await Order.get(id=order_id)
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail='The user does not have access to the resource')
     else:
-        order.modified_at = datetime.now(timezone.utc)
-        await Order.filter(id=order_id).update(**order.dict(exclude_unset=True))
+        await Order.filter(id=order_id).update(**order_dict)
         return await Order.get(id=order_id)
 
 
@@ -141,14 +142,14 @@ async def update_status_order(order_id: int,
     if user_info['role'] == 'advanced_user':
         if user_info['id'] == order_obj.creator.id:
             await order_obj.update_from_dict({'status_id': status_id,
-                                              'modified_at': datetime.now()}).save()
+                                              'modified_at': datetime.now(timezone.utc)}).save()
             return await Order.get(id=order_id)
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail='The user does not have access to the resource')
     else:
         await order_obj.update_from_dict({'status_id': status_id,
-                                          'modified_at': datetime.now()}).save()
+                                          'modified_at': datetime.now(timezone.utc)}).save()
         return await Order.get(id=order_id)
 
 

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -14,9 +14,20 @@ from utils.permission import PermissionChecker
 router_building = APIRouter(prefix="/building", tags=["Buildings"])
 
 
-@router_building.get("/", response_model=List[BuildingSchema])
-async def get_buildings(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await BuildingSchema.from_queryset(Building.all())
+@router_building.get("/")
+async def get_buildings(on_page: Optional[int] = 10,
+                        page: Optional[int] = 0,
+                        search_by_building_name: Optional[str] = None,
+                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+    if search_by_building_name is None:
+        quantity_buildings = await Building.all().count()
+        buildings = await Building.all().order_by("building_name").limit(on_page).offset(on_page * page)
+    else:
+        quantity_buildings = await Building.filter(building_name__icontains=search_by_building_name).all().count()
+        buildings = await Building.filter(building_name__icontains=search_by_building_name). \
+            all().order_by("building_name").limit(on_page).offset(on_page * page)
+    return {"quantity_buildings": quantity_buildings,
+            "buildings": buildings}
 
 
 @router_building.post("/create", response_model=BuildingSchema, status_code=201)

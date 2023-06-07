@@ -16,16 +16,21 @@ from utils.permission import PermissionChecker
 router_user = APIRouter(prefix="/user", tags=["Users"])
 
 
-@router_user.get("/", response_model=List[UserSchemaRead])
+@router_user.get("/")
 async def get_users(on_page: Optional[int] = 10,
                     page: Optional[int] = 0,
                     search_by_surname: Optional[str] = None,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema),
                     permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     if search_by_surname is not None:
-        return await User.filter(surname__contains=search_by_surname).all().offset(page * on_page).limit(on_page)
+        quantity_users = await User.filter(surname__icontains=search_by_surname).all().count()
+        users = await User.filter(surname__icontains=search_by_surname).all().order_by("surname"). \
+            offset(page * on_page).limit(on_page)
     else:
-        return await User.all().offset(page * on_page).limit(on_page)
+        quantity_users = await User.all().count()
+        users = await User.all().order_by("surname").offset(page * on_page).limit(on_page)
+    return {"quantity_users": quantity_users,
+            "users": users}
 
 
 @router_user.post("/create", response_model=UserSchema, status_code=201)
