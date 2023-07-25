@@ -14,6 +14,7 @@ class Order(Model):
     created_at = fields.DatetimeField(null=True, auto_now_add=True)
     modified_at = fields.DatetimeField(null=True, auto_now=True)
     expected_time = fields.DatetimeField(null=True)
+    description = fields.TextField(null=True)
 
     def __str__(self):
         return f'Building: {self.building} \n' \
@@ -24,4 +25,5 @@ class Order(Model):
                f'Creator: {self.creator} \n' \
                f'Status: {self.status} \n' \
                f'Created_at: {self.created_at} \n' \
-               f'Modified_at: {self.modified_at} \n'
+               f'Modified_at: {self.modified_at} \n' \
+               f'Description: {self.description}'

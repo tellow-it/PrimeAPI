@@ -13,6 +13,7 @@ class OrderSchema(BaseModel):
     creator_id: int
     status_id: int
     expected_time: Optional[datetime] = None
+    description: Optional[str] = None
 
 
 class OrderSchemaRead(OrderSchema):
@@ -42,6 +43,7 @@ def normal_prefetch(order):
                    'status_name': order.status.status_name},
         'created_at': order.created_at,
         'modified_at': order.modified_at,
-        'expected_time': order.expected_time
+        'expected_time': order.expected_time,
+        'description': order.description
     }
     return prefetch_order
