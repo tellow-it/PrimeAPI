@@ -30,7 +30,7 @@ router_order = APIRouter(prefix="/order", tags=["Orders"])
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
                      search_by_material: Optional[str] = None,
-                     order_by_field: Optional[str] = "created_at",
+                     order_by_field: Optional[str] = "-created_at",
                      token: HTTPAuthorizationCredentials = Depends(auth_schema),
                      ):
     user_info = decode_access_token(token)
