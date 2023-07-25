@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi.security import HTTPAuthorizationCredentials
 from routers.v1.router_auth import auth_schema
 from schemas.response import StatusResponse
@@ -11,9 +11,17 @@ from utils.permission import PermissionChecker
 router_system = APIRouter(prefix="/system", tags=["Systems"])
 
 
-@router_system.get("/", response_model=List[SystemSchema])
-async def get_systems(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await SystemSchema.from_queryset(System.all())
+@router_system.get("/", response_model=List[SystemSchema],
+                   description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Название системы(по нему сортируется по умолчанию "system_name"): system_name\n
+                   """)
+async def get_systems(order_by_field: Optional[str] = "system_name",
+                      token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+    return await SystemSchema.from_queryset(System.all().order_by(order_by_field))
 
 
 @router_system.post("/create", response_model=SystemSchema, status_code=201)

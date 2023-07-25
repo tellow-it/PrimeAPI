@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -13,9 +13,17 @@ from utils.permission import PermissionChecker
 router_status = APIRouter(prefix="/status", tags=["Statuses"])
 
 
-@router_status.get("/", response_model=List[StatusSchema])
-async def get_statuses(token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await StatusSchema.from_queryset(Status.all())
+@router_status.get("/", response_model=List[StatusSchema],
+                   description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Название статуса(по нему сортируется по умолчанию "status_name"): status_name\n
+                   """)
+async def get_statuses(order_by_field: Optional[str] = "status_name",
+                       token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+    return await StatusSchema.from_queryset(Status.all().order_by(order_by_field))
 
 
 @router_status.post("/create", response_model=StatusSchema, status_code=201)

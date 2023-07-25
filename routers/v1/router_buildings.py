@@ -14,18 +14,25 @@ from utils.permission import PermissionChecker
 router_building = APIRouter(prefix="/building", tags=["Buildings"])
 
 
-@router_building.get("/")
+@router_building.get("/", description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Название объекта(по нему сортируется по умолчанию "building_name"): building_name\n
+                   """)
 async def get_buildings(on_page: Optional[int] = 10,
                         page: Optional[int] = 0,
                         search_by_building_name: Optional[str] = None,
+                        order_by_field: Optional[str] = "building_name",
                         token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     if search_by_building_name is None:
         quantity_buildings = await Building.all().count()
-        buildings = await Building.all().order_by("building_name").limit(on_page).offset(on_page * page)
+        buildings = await Building.all().order_by(order_by_field).limit(on_page).offset(on_page * page)
     else:
         quantity_buildings = await Building.filter(building_name__icontains=search_by_building_name).all().count()
         buildings = await Building.filter(building_name__icontains=search_by_building_name). \
-            all().order_by("building_name").limit(on_page).offset(on_page * page)
+            all().order_by(order_by_field).limit(on_page).offset(on_page * page)
     return {"quantity_buildings": quantity_buildings,
             "buildings": buildings}
 

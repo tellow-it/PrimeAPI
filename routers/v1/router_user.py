@@ -16,19 +16,30 @@ from utils.permission import PermissionChecker
 router_user = APIRouter(prefix="/user", tags=["Users"])
 
 
-@router_user.get("/")
+@router_user.get("/", description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Имя: name\n
+                   Фамилия(по нему сортируется по умолчанию "surname"): surname\n
+                   Роль: role\n
+                   Дата создания: created_at\n
+                   Номер телефона: telephone\n
+                   """)
 async def get_users(on_page: Optional[int] = 10,
                     page: Optional[int] = 0,
                     search_by_surname: Optional[str] = None,
+                    order_by_field: Optional[str] = "surname",
                     token: HTTPAuthorizationCredentials = Depends(auth_schema),
                     permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
     if search_by_surname is not None:
         quantity_users = await User.filter(surname__icontains=search_by_surname).all().count()
-        users = await User.filter(surname__icontains=search_by_surname).all().order_by("surname"). \
+        users = await User.filter(surname__icontains=search_by_surname).all().order_by(order_by_field). \
             offset(page * on_page).limit(on_page)
     else:
         quantity_users = await User.all().count()
-        users = await User.all().order_by("surname").offset(page * on_page).limit(on_page)
+        users = await User.all().order_by(order_by_field).offset(page * on_page).limit(on_page)
     return {"quantity_users": quantity_users,
             "users": users}
 

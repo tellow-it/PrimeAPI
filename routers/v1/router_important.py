@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -14,9 +14,17 @@ from utils.permission import PermissionChecker
 router_important = APIRouter(prefix="/important", tags=["Important"])
 
 
-@router_important.get("/", response_model=List[ImportantSchema])
-async def get_important_s(token: HTTPAuthorizationCredentials = Depends(auth_schema),):
-    return await ImportantSchema.from_queryset(Important.all())
+@router_important.get("/", response_model=List[ImportantSchema],
+                      description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Название срочности(по нему сортируется по умолчанию "important_name"): important_name\n
+                   """)
+async def get_important_s(order_by_field: Optional[str] = "important_name",
+                          token: HTTPAuthorizationCredentials = Depends(auth_schema), ):
+    return await ImportantSchema.from_queryset(Important.all().order_by(order_by_field))
 
 
 @router_important.post("/create", response_model=ImportantSchema, status_code=201)

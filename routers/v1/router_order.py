@@ -15,34 +15,45 @@ from utils.permission import PermissionChecker
 router_order = APIRouter(prefix="/order", tags=["Orders"])
 
 
-@router_order.get("/", status_code=200)
+@router_order.get("/", status_code=200,
+                  description="""
+                   В поле order_by_field нужно передать поле по которому нужно сделать сортировку
+                   в следующем формате:
+                   \n1) порядок сортировки, если по убыванию, то перед названием поля нужно поставить "-", иначе ничего не ставить
+                   \n2) поле по которому будет сортировка, вот список полей, которые которые можно передать чтобы отсортировать данные в зависимости от колонки:\n
+                   Дата создание(по нему сортируется по умолчанию "created_at"): created_at\n
+                   Создатель: creator__surname\n
+                   Объект: building__building_name\n
+                   Материал: material\n
+                   Количество: quantity\n
+                   """)
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
                      search_by_material: Optional[str] = None,
+                     order_by_field: Optional[str] = "created_at",
                      token: HTTPAuthorizationCredentials = Depends(auth_schema),
-
                      ):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
         if search_by_material is not None:
             quantity_orders = await Order.filter(material__icontains=f'{search_by_material}').all().count()
             orders = await Order.filter(material__icontains=f'{search_by_material}').all(). \
-                order_by("-modified_at").offset(page * on_page).limit(on_page). \
+                order_by(order_by_field).offset(page * on_page).limit(on_page). \
                 prefetch_related("building", "important", "creator", "system", "status")
         else:
             quantity_orders = await Order.all().count()
-            orders = await Order.all().order_by("-modified_at").offset(page * on_page). \
+            orders = await Order.all().order_by(order_by_field).offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
     else:
         if search_by_material is not None:
             quantity_orders = await Order.filter(creator_id=user_info['id']).filter(
                 material__contains=f'{search_by_material}').all().count()
             orders = await Order.filter(creator_id=user_info['id']).filter(
-                material__contains=f'{search_by_material}').all().order_by("-modified_at").offset(page * on_page). \
+                material__contains=f'{search_by_material}').all().order_by(order_by_field).offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
         else:
             quantity_orders = await Order.filter(creator_id=user_info['id']).count()
-            orders = await Order.filter(creator_id=user_info['id']).order_by("-modified_at"). \
+            orders = await Order.filter(creator_id=user_info['id']).order_by(order_by_field). \
                 offset(page * on_page).limit(on_page). \
                 prefetch_related("building", "important", "creator", "system", "status")
     order_list = []
@@ -57,12 +68,13 @@ async def get_orders(on_page: Optional[int] = 10,
 async def get_orders_by_user_id(user_id: int,
                                 on_page: Optional[int] = 10,
                                 page: Optional[int] = 0,
+                                order_by_field: Optional[str] = "created_at",
                                 token: HTTPAuthorizationCredentials = Depends(auth_schema),
                                 permission: bool = Depends(
                                     PermissionChecker(required_permissions=['admin']))
                                 ):
     quantity_orders = await Order.all().filter(creator_id=user_id).count()
-    orders = await Order.all().filter(creator_id=user_id).order_by("-modified_at").offset(page * on_page).\
+    orders = await Order.all().filter(creator_id=user_id).order_by(order_by_field).offset(page * on_page). \
         limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
     order_list = []
     for order in orders:
