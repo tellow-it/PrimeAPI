@@ -24,8 +24,7 @@ router_order = APIRouter(prefix="/order", tags=["Orders"])
                    Дата создание(по нему сортируется по умолчанию "created_at"): created_at\n
                    Создатель: creator__surname\n
                    Объект: building__building_name\n
-                   Материал: material\n
-                   Количество: quantity\n
+                   Материалы и их количество: materials\n
                    """)
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,

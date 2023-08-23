@@ -1,15 +1,15 @@
 from datetime import timezone
-from typing import Optional
+from typing import Optional, List
 from pydantic.schema import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Json
+from schemas.material import MaterialSchema
 
 
 class OrderSchema(BaseModel):
     building_id: int
     system_id: int
     important_id: int
-    material: str
-    quantity: int
+    materials: Json[List[MaterialSchema]] = []
     creator_id: int
     status_id: int
     expected_time: Optional[datetime] = None
@@ -31,8 +31,7 @@ def normal_prefetch(order):
                    'system_name': order.system.system_name},
         'important': {'id': order.important.id,
                       'important_name': order.important.important_name},
-        'material': order.material,
-        'quantity': order.quantity,
+        'materials': order.materials,
         'creator': {'id': order.creator.id,
                     "name": order.creator.name,
                     "surname": order.creator.surname,

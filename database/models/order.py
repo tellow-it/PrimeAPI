@@ -7,8 +7,7 @@ class Order(Model):
     building = fields.ForeignKeyField("models.Building", related_name='orders')
     system = fields.ForeignKeyField("models.System", related_name='orders')
     important = fields.ForeignKeyField("models.Important", related_name='orders')
-    material = fields.TextField(null=False)
-    quantity = fields.IntField(null=False)
+    materials = fields.JSONField(default=[])
     creator = fields.ForeignKeyField("models.User", related_name='orders')
     status = fields.ForeignKeyField("models.Status", related_name='orders')
     created_at = fields.DatetimeField(null=True, auto_now_add=True)
@@ -20,8 +19,7 @@ class Order(Model):
         return f'Building: {self.building} \n' \
                f'System: {self.system} \n' \
                f'Important: {self.important} \n' \
-               f'Material: {self.material} \n' \
-               f'Quantity: {self.quantity} \n' \
+               f'Materials: {self.materials} \n' \
                f'Creator: {self.creator} \n' \
                f'Status: {self.status} \n' \
                f'Created_at: {self.created_at} \n' \
