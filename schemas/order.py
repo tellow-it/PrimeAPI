@@ -9,7 +9,7 @@ class OrderSchema(BaseModel):
     building_id: int
     system_id: int
     important_id: int
-    materials: Json[List[MaterialSchema]] = []
+    materials: Json = []
     creator_id: int
     status_id: int
     expected_time: Optional[datetime] = None
