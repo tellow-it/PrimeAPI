@@ -6,6 +6,7 @@ from schemas.material import MaterialSchema
 
 
 class OrderSchema(BaseModel):
+    order_name: str
     building_id: int
     system_id: int
     important_id: int
@@ -25,6 +26,7 @@ class OrderSchemaRead(OrderSchema):
 def normal_prefetch(order):
     prefetch_order = {
         'id': order.id,
+        'order_name': order.order_name,
         'building': {'id': order.building.id,
                      'building_name': order.building.building_name},
         'system': {'id': order.system.id,

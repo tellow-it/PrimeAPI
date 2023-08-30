@@ -4,6 +4,7 @@ from tortoise import fields
 
 class Order(Model):
     id = fields.IntField(pk=True)
+    order_name = fields.CharField(max_length=200, unique=True, null=False)
     building = fields.ForeignKeyField("models.Building", related_name='orders')
     system = fields.ForeignKeyField("models.System", related_name='orders')
     important = fields.ForeignKeyField("models.Important", related_name='orders')
@@ -16,7 +17,8 @@ class Order(Model):
     description = fields.TextField(null=True)
 
     def __str__(self):
-        return f'Building: {self.building} \n' \
+        return f'Order name: {self.order_name} \n' \
+               f'Building: {self.building} \n' \
                f'System: {self.system} \n' \
                f'Important: {self.important} \n' \
                f'Materials: {self.materials} \n' \
