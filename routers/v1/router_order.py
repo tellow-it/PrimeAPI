@@ -28,15 +28,15 @@ router_order = APIRouter(prefix="/order", tags=["Orders"])
                    """)
 async def get_orders(on_page: Optional[int] = 10,
                      page: Optional[int] = 0,
-                     search_by_material: Optional[str] = None,
+                     search_by_order_name: Optional[str] = None,
                      order_by_field: Optional[str] = "-created_at",
                      token: HTTPAuthorizationCredentials = Depends(auth_schema),
                      ):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        if search_by_material is not None:
-            quantity_orders = await Order.filter(material__icontains=f'{search_by_material}').all().count()
-            orders = await Order.filter(material__icontains=f'{search_by_material}').all(). \
+        if search_by_order_name is not None:
+            quantity_orders = await Order.filter(order_name__icontains=f'{search_by_order_name}').all().count()
+            orders = await Order.filter(order_name__icontains=f'{search_by_order_name}').all(). \
                 order_by(order_by_field).offset(page * on_page).limit(on_page). \
                 prefetch_related("building", "important", "creator", "system", "status")
         else:
@@ -44,11 +44,11 @@ async def get_orders(on_page: Optional[int] = 10,
             orders = await Order.all().order_by(order_by_field).offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
     else:
-        if search_by_material is not None:
+        if search_by_order_name is not None:
             quantity_orders = await Order.filter(creator_id=user_info['id']).filter(
-                material__contains=f'{search_by_material}').all().count()
+                order_name__icontains=f'{search_by_order_name}').all().count()
             orders = await Order.filter(creator_id=user_info['id']).filter(
-                material__contains=f'{search_by_material}').all().order_by(order_by_field).offset(page * on_page). \
+                order_name__icontains=f'{search_by_order_name}').all().order_by(order_by_field).offset(page * on_page). \
                 limit(on_page).prefetch_related("building", "important", "creator", "system", "status")
         else:
             quantity_orders = await Order.filter(creator_id=user_info['id']).count()
