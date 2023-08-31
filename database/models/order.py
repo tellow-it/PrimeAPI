@@ -4,7 +4,7 @@ from tortoise import fields
 
 class Order(Model):
     id = fields.IntField(pk=True)
-    order_name = fields.CharField(max_length=200, unique=True, null=False)
+    order_name = fields.CharField(max_length=400, null=False)
     building = fields.ForeignKeyField("models.Building", related_name='orders')
     system = fields.ForeignKeyField("models.System", related_name='orders')
     important = fields.ForeignKeyField("models.Important", related_name='orders')
