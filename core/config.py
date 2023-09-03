@@ -28,21 +28,22 @@ class Settings:
     JWT_REFRESH_SECRET_KEY: str = os.getenv("JWT_REFRESH_SECRET_KEY")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM")
 
+    ADMIN_TELEPHONE: str = os.getenv("ADMIN_TELEPHONE")
+
 
 settings = Settings()
-
 
 TORTOISE_ORM = {
     "connections": {"default": settings.DATABASE_URL_R},
     "apps": {
         "models": {
             "models": ["database.models.building",
-                        "database.models.important",
-                        "database.models.status",
-                        "database.models.system",
-                        "database.models.user",
-                        "database.models.order",
-                        "aerich.models"],
+                       "database.models.important",
+                       "database.models.status",
+                       "database.models.system",
+                       "database.models.user",
+                       "database.models.order",
+                       "aerich.models"],
             "default_connection": "default",
         },
     },

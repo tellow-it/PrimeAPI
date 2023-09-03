@@ -1,10 +1,11 @@
-from enum import Enum
-
+import getpass
 from tortoise.models import Model
 from tortoise import fields
 
 from database.models.order import Order
 from database.models.role import Roles
+from utils.hash_password import hashing_password
+import datetime
 
 
 class User(Model):

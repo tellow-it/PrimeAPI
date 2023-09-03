@@ -6,6 +6,7 @@ from tortoise.contrib.fastapi import register_tortoise
 from routers.base_router import main_router
 from core.config import settings
 
+
 app = FastAPI(title=settings.PROJECT_NAME,
               version=settings.PROJECT_VERSION,
               description="API for creating tasks for company Prime",
@@ -34,7 +35,6 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True,
 )
-
 
 # @app.exception_handler(Exception)
 # async def internal_exception_handler(request: Request, exc: Exception):
