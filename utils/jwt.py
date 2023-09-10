@@ -31,7 +31,7 @@ def decode_access_token(token: HTTPAuthorizationCredentials):
         claims = jwt.decode(token.credentials, key=settings.JWT_ACCESS_SECRET_KEY, algorithms='HS256')
         return claims
     except:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Access token is expired')
 
 
@@ -40,5 +40,5 @@ def decode_refresh_token(token: HTTPAuthorizationCredentials):
         claims = jwt.decode(token.credentials, key=settings.JWT_REFRESH_SECRET_KEY, algorithms='HS256')
         return claims
     except:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Refresh token is expired')

@@ -21,7 +21,7 @@ telephone = settings.ADMIN_TELEPHONE
 created_at = datetime.datetime.now().isoformat()
 
 try:
-    conn = psycopg2.connect(settings.DATABASE_URL_R)
+    conn = psycopg2.connect(settings.DATABASE_URL)
     curs = conn.cursor()
     query = f"INSERT INTO public.user (name, surname, role, password, telephone, created_at) " \
             f"values (%s,%s,%s,%s,%s,%s)"

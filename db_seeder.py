@@ -1,9 +1,9 @@
 import psycopg2
 from core.config import settings
-from typing import List
+from typing import List, Tuple
 
 
-def seed_buildings(connector, cursor, list_buildings: List[str]):
+def seed_buildings(connector, cursor, list_buildings: List[Tuple[str]]):
     try:
         query_building = f"INSERT INTO public.building (building_name) values (%s)"
         _ = cursor.executemany(query_building, list_buildings)
@@ -13,7 +13,7 @@ def seed_buildings(connector, cursor, list_buildings: List[str]):
         print("Error then added buildings. More info: ", error)
 
 
-def seed_important_s(connector, cursor, list_important_s: List[str]):
+def seed_important_s(connector, cursor, list_important_s: List[Tuple[str]]):
     try:
         query_important = f"INSERT INTO public.important (important_name) values (%s)"
         _ = cursor.executemany(query_important, list_important_s)
@@ -23,7 +23,7 @@ def seed_important_s(connector, cursor, list_important_s: List[str]):
         print("Error then added important s. More info: ", error)
 
 
-def seed_statuses(connector, cursor, list_statuses: List[str]):
+def seed_statuses(connector, cursor, list_statuses: List[Tuple[str]]):
     try:
         query_status = f"INSERT INTO public.status (status_name) values (%s)"
         _ = cursor.executemany(query_status, list_statuses)
@@ -33,7 +33,7 @@ def seed_statuses(connector, cursor, list_statuses: List[str]):
         print("Error then added statuses. More info: ", error)
 
 
-def seed_systems(connector, cursor, list_systems: List[str]):
+def seed_systems(connector, cursor, list_systems: List[Tuple[str]]):
     try:
         query_system = f"INSERT INTO public.system (system_name) values (%s)"
         _ = cursor.executemany(query_system, list_systems)
@@ -44,7 +44,7 @@ def seed_systems(connector, cursor, list_systems: List[str]):
 
 
 try:
-    conn = psycopg2.connect(settings.DATABASE_URL_R)
+    conn = psycopg2.connect(settings.DATABASE_URL)
     curs = conn.cursor()
 
     buildings = [("НГ, Паркинг",), ("НГ, Паркинг Этап 2",), ("НГ, корпус 1",),
@@ -69,20 +69,3 @@ finally:
         curs.close()
         conn.close()
         print("Connection close")
-
-
-def seed_db():
-    try:
-        conn = psycopg2.connect(settings.DATABASE_URL_R)
-        curs = conn.cursor()
-
-        conn.commit()
-        print("Success seed db")
-    except (Exception, psycopg2.DatabaseError) as err:
-        print("ERROR: ", err)
-    finally:
-        # closing database connection.
-        if conn:
-            curs.close()
-            conn.close()
-            print("Connection close")

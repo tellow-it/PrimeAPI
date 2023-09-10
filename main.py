@@ -3,16 +3,16 @@ from fastapi.encoders import jsonable_encoder
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from tortoise.contrib.fastapi import register_tortoise
+
 from routers.base_router import main_router
 from core.config import settings
-
 
 app = FastAPI(title=settings.PROJECT_NAME,
               version=settings.PROJECT_VERSION,
               description="API for creating tasks for company Prime",
               )
 
-app.include_router(prefix='/prime', router=main_router)
+app.include_router(prefix='/api', router=main_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +24,7 @@ app.add_middleware(
 
 register_tortoise(
     app,
-    db_url=settings.DATABASE_URL_R,
+    db_url=settings.DATABASE_URL,
     modules={"models": ["database.models.building",
                         "database.models.important",
                         "database.models.status",
@@ -36,6 +36,7 @@ register_tortoise(
     add_exception_handlers=True,
 )
 
-# @app.exception_handler(Exception)
-# async def internal_exception_handler(request: Request, exc: Exception):
-#     return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))
+
+@app.exception_handler(Exception)
+async def internal_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))
