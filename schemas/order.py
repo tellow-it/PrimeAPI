@@ -3,6 +3,7 @@ from typing import Optional, List
 from pydantic.schema import datetime
 from pydantic import BaseModel, Json
 from schemas.material import MaterialSchema
+from database.models.order import Order
 
 
 class OrderSchema(BaseModel):
@@ -23,28 +24,33 @@ class OrderSchemaRead(OrderSchema):
     modified_at: datetime
 
 
-def normal_prefetch(order):
+def normal_prefetch(order: Order):
     prefetch_order = {
         'id': order.id,
         'order_name': order.order_name,
-        'building': {'id': order.building.id,
-                     'building_name': order.building.building_name},
-        'system': {'id': order.system.id,
-                   'system_name': order.system.system_name},
-        'important': {'id': order.important.id,
-                      'important_name': order.important.important_name},
         'materials': order.materials,
-        'creator': {'id': order.creator.id,
-                    "name": order.creator.name,
-                    "surname": order.creator.surname,
-                    "role": order.creator.role,
-                    "telephone": order.creator.telephone
-                    },
-        'status': {'id': order.status.id,
-                   'status_name': order.status.status_name},
         'created_at': order.created_at,
         'modified_at': order.modified_at,
         'expected_time': order.expected_time,
         'description': order.description
     }
+    if order.building:
+        prefetch_order['building'] = {'id': order.building.id,
+                                      'building_name': order.building.building_name}
+    if order.system:
+        prefetch_order['system'] = {'id': order.system.id,
+                                    'system_name': order.system.system_name}
+    if order.creator:
+        prefetch_order["creator"] = {'id': order.creator.id,
+                                     "name": order.creator.name,
+                                     "surname": order.creator.surname,
+                                     "role": order.creator.role,
+                                     "telephone": order.creator.telephone
+                                     }
+    if order.important:
+        prefetch_order["important"] = {'id': order.important.id,
+                                       'important_name': order.important.important_name}
+    if order.status:
+        prefetch_order["status"] = {'id': order.status.id,
+                                    'status_name': order.status.status_name}
     return prefetch_order
