@@ -54,3 +54,4 @@ def normal_prefetch(order: Order):
         prefetch_order["status"] = {'id': order.status.id,
                                     'status_name': order.status.status_name}
     return prefetch_order
+
