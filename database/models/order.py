@@ -7,7 +7,7 @@ class Order(Model):
     order_name = fields.CharField(max_length=200, null=False)
     building = fields.ForeignKeyField("models.Building", related_name='orders', on_delete=fields.SET_NULL, null=True)
     system = fields.ForeignKeyField("models.System", related_name='orders', on_delete=fields.SET_NULL, null=True)
-    important = fields.ForeignKeyField("models.Important", related_name='orders, on_delete=fields.SET_NULL, null=True')
+    important = fields.ForeignKeyField("models.Important", related_name='orders', on_delete=fields.SET_NULL, null=True)
     materials = fields.JSONField(default=[])
     creator = fields.ForeignKeyField("models.User", related_name='orders', on_delete=fields.SET_NULL, null=True)
     status = fields.ForeignKeyField("models.Status", related_name='orders', on_delete=fields.SET_NULL, null=True)
