@@ -8,11 +8,11 @@ from core.config import settings
 from datetime import timedelta, datetime
 
 
-def create_access_token(user: Dict):
+def create_access_token(user: Dict, exp_minutes: int):
     claims = {
         "role": user["role"],
         "id": user["id"],
-        "exp": datetime.utcnow() + timedelta(minutes=60 * 2)
+        "exp": datetime.utcnow() + timedelta(minutes=exp_minutes)
     }
     return jwt.encode(claims=claims, key=settings.JWT_ACCESS_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
