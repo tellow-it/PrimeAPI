@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-
-@app.exception_handler(Exception)
-async def internal_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))
+#
+# @app.exception_handler(Exception)
+# async def internal_exception_handler(request: Request, exc: Exception):
+#     return JSONResponse(status_code=500, content=jsonable_encoder({"detail_error": str(exc)}))
