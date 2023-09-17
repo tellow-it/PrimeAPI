@@ -61,14 +61,14 @@ async def get_user(user_id: int,
     if user_info['role'] == 'admin':
         try:
             return await User.get(id=user_id)
-        except HTTPNotFoundError:
+        except Exception:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f'User with id {user_id} not found!')
     else:
         if user_info['id'] == user_id:
             try:
                 return await User.get(id=user_id)
-            except HTTPNotFoundError:
+            except Exception:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail=f'User with id {user_id} not found!')
         else:
@@ -85,7 +85,7 @@ async def update_user(user_id: int, user: UserSchema,
     try:
         await User.filter(id=user_id).update(**user.dict(exclude_unset=True))
         return await User.get(id=user_id)
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'User with id {user_id} not found!')
 
@@ -96,7 +96,7 @@ async def update_password_user(user_id: int,
                                token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     try:
         user_obj = await User.get(id=user_id)
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'User with id {user_id} not found!')
     if verify_password(user_password.password, user_obj.password):

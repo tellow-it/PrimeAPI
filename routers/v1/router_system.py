@@ -36,7 +36,7 @@ async def create_system(system: SystemSchemaCreate,
 async def get_system(system_id: int, token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     try:
         return await SystemSchema.from_queryset_single(System.get(id=system_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'System with id {system_id} not found!')
 
@@ -48,7 +48,7 @@ async def update_system(system_id: int, system: SystemSchemaUpdate,
     try:
         await System.filter(id=system_id).update(**system.dict(exclude_unset=True))
         return await SystemSchema.from_queryset_single(System.get(id=system_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'System with id {system_id} not found!')
 

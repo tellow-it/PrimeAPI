@@ -50,7 +50,7 @@ async def get_building(building_id: int,
                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     try:
         return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Building with id {building_id} not found!')
 
@@ -63,7 +63,7 @@ async def update_building(building_id: int,
     try:
         await Building.filter(id=building_id).update(**building.dict(exclude_unset=True))
         return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Building with id {building_id} not found!')
 

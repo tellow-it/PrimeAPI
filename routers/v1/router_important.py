@@ -40,7 +40,7 @@ async def get_important(important_id: int,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     try:
         return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Importamt with id {important_id} not found!')
 
@@ -54,7 +54,7 @@ async def update_important(important_id: int,
     try:
         await Important.filter(id=important_id).update(**important.dict(exclude_unset=True))
         return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Importamt with id {important_id} not found!')
 

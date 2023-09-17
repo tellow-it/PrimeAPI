@@ -38,7 +38,7 @@ async def create_status(status_data: StatusSchemaCreate,
 async def get_status(status_id: int, token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     try:
         return await StatusSchema.from_queryset_single(Status.get(id=status_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Status with id {status_id} not found!')
 
@@ -50,7 +50,7 @@ async def update_status(status_id: int, status_data: StatusSchemaUpdate,
     try:
         await Status.filter(id=status_id).update(**status_data.dict(exclude_unset=True))
         return await StatusSchema.from_queryset_single(Status.get(id=status_id))
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Status with id {status_id} not found!')
 

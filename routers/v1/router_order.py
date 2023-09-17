@@ -109,14 +109,14 @@ async def get_order(order_id: int,
             order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system",
                                                                   "status")
             return normal_prefetch(order)
-        except HTTPNotFoundError:
+        except Exception:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f'Order with id {order_id} not found!')
     else:
         try:
             order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system",
                                                                   "status")
-        except HTTPNotFoundError:
+        except Exception:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f'Order with id {order_id} not found!')
         if user_info['id'] == order.creator.id:
@@ -139,7 +139,7 @@ async def update_order(order_id: int,
     if user_info['role'] == 'advanced_user':
         try:
             order_obj = await Order.get(id=order_id).prefetch_related('creator')
-        except HTTPNotFoundError:
+        except Exception:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f'Order with id {order_id} not found!')
         if user_info['id'] == order_obj.creator.id:
@@ -152,7 +152,7 @@ async def update_order(order_id: int,
         try:
             await Order.filter(id=order_id).update(**order_dict)
             return await Order.get(id=order_id)
-        except HTTPNotFoundError:
+        except Exception:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f'Order with id {order_id} not found!')
 
@@ -167,12 +167,12 @@ async def update_status_order(order_id: int,
     user_info = decode_access_token(token)
     try:
         status_obj = await Status.get(id=status_id)
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Status with id {status_id} not found!')
     try:
         order_obj = await Order.get(id=order_id)
-    except HTTPNotFoundError:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Order with id {order_id} not found!')
     if user_info['role'] == 'advanced_user':
