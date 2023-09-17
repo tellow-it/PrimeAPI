@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from routers.v1.router_auth import auth_schema
 from schemas.response import StatusResponse
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 
 from schemas.important import ImportantSchema, ImportantSchemaCreate, ImportantSchemaUpdate
@@ -35,22 +35,28 @@ async def create_important(important: ImportantSchemaCreate,
     return await ImportantSchema.from_tortoise_orm(important_obj)
 
 
-@router_important.get("/{important_id}", response_model=ImportantSchema,
-                      responses={404: {"model": HTTPNotFoundError}}, status_code=200)
+@router_important.get("/{important_id}", response_model=ImportantSchema, status_code=200)
 async def get_important(important_id: int,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
+    try:
+        return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Importamt with id {important_id} not found!')
 
 
 @router_important.put(
-    "/update/{important_id}", response_model=ImportantSchema, responses={404: {"model": HTTPNotFoundError}}
-)
+    "/update/{important_id}", response_model=ImportantSchema)
 async def update_important(important_id: int,
                            important: ImportantSchemaUpdate,
                            token: HTTPAuthorizationCredentials = Depends(auth_schema),
                            permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    await Important.filter(id=important_id).update(**important.dict(exclude_unset=True))
-    return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
+    try:
+        await Important.filter(id=important_id).update(**important.dict(exclude_unset=True))
+        return await ImportantSchema.from_queryset_single(Important.get(id=important_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Importamt with id {important_id} not found!')
 
 
 @router_important.delete("/delete/{important_id}", responses={404: {"model": HTTPNotFoundError}})

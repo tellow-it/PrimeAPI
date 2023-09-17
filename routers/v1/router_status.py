@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from routers.v1.router_auth import auth_schema
 from schemas.response import StatusResponse
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from schemas.status import StatusSchema, StatusSchemaUpdate, StatusSchemaCreate
 from database.models.status import Status
@@ -27,28 +27,32 @@ async def get_statuses(order_by_field: Optional[str] = "status_name",
 
 
 @router_status.post("/create", response_model=StatusSchema, status_code=201)
-async def create_status(status: StatusSchemaCreate,
+async def create_status(status_data: StatusSchemaCreate,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema),
                         permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    status_obj = await Status.create(**status.dict(exclude_unset=True))
+    status_obj = await Status.create(**status_data.dict(exclude_unset=True))
     return await StatusSchema.from_tortoise_orm(status_obj)
 
 
-@router_status.get("/{status_id}", response_model=StatusSchema,
-                   responses={404: {"model": HTTPNotFoundError}}, status_code=200)
-async def get_status(status_id: int,
-                     token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await StatusSchema.from_queryset_single(Status.get(id=status_id))
+@router_status.get("/{status_id}", response_model=StatusSchema, status_code=200)
+async def get_status(status_id: int, token: HTTPAuthorizationCredentials = Depends(auth_schema)):
+    try:
+        return await StatusSchema.from_queryset_single(Status.get(id=status_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Status with id {status_id} not found!')
 
 
-@router_status.put(
-    "/update/{status_id}", response_model=StatusSchema, responses={404: {"model": HTTPNotFoundError}}
-)
-async def update_status(status_id: int, status: StatusSchemaUpdate,
+@router_status.put("/update/{status_id}", response_model=StatusSchema)
+async def update_status(status_id: int, status_data: StatusSchemaUpdate,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema),
                         permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    await Status.filter(id=status_id).update(**status.dict(exclude_unset=True))
-    return await StatusSchema.from_queryset_single(Status.get(id=status_id))
+    try:
+        await Status.filter(id=status_id).update(**status_data.dict(exclude_unset=True))
+        return await StatusSchema.from_queryset_single(Status.get(id=status_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Status with id {status_id} not found!')
 
 
 @router_status.delete("/delete/{status_id}", responses={404: {"model": HTTPNotFoundError}})

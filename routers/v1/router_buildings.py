@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from routers.v1.router_auth import auth_schema
 from schemas.response import StatusResponse
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from tortoise.contrib.fastapi import HTTPNotFoundError
 
 from schemas.bulding import BuildingSchema, BuildingSchemaCreate, BuildingSchemaUpdate
@@ -45,22 +45,27 @@ async def create_building(building: BuildingSchemaCreate,
     return await BuildingSchema.from_tortoise_orm(building_obj)
 
 
-@router_building.get("/{building_id}", response_model=BuildingSchema,
-                     responses={404: {"model": HTTPNotFoundError}}, status_code=200)
+@router_building.get("/{building_id}", response_model=BuildingSchema, status_code=200)
 async def get_building(building_id: int,
                        token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
+    try:
+        return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Building with id {building_id} not found!')
 
 
-@router_building.put(
-    "/update/{building_id}", response_model=BuildingSchema, responses={404: {"model": HTTPNotFoundError}}
-)
+@router_building.put("/update/{building_id}", response_model=BuildingSchema)
 async def update_building(building_id: int,
                           building: BuildingSchemaUpdate,
                           token: HTTPAuthorizationCredentials = Depends(auth_schema),
                           permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    await Building.filter(id=building_id).update(**building.dict(exclude_unset=True))
-    return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
+    try:
+        await Building.filter(id=building_id).update(**building.dict(exclude_unset=True))
+        return await BuildingSchema.from_queryset_single(Building.get(id=building_id))
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Building with id {building_id} not found!')
 
 
 @router_building.delete("/delete/{building_id}", responses={404: {"model": HTTPNotFoundError}})

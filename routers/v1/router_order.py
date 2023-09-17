@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Optional
 from fastapi.security import HTTPAuthorizationCredentials
 
 from database.models.status import Status
@@ -100,15 +100,25 @@ async def create_order(order: OrderSchema,
                                 detail='The user does not have access to the resource')
 
 
-@router_order.get("/{order_id}", responses={404: {"model": HTTPNotFoundError}}, status_code=200)
+@router_order.get("/{order_id}", status_code=200)
 async def get_order(order_id: int,
                     token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system", "status")
-        return normal_prefetch(order)
+        try:
+            order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system",
+                                                                  "status")
+            return normal_prefetch(order)
+        except HTTPNotFoundError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'Order with id {order_id} not found!')
     else:
-        order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system", "status")
+        try:
+            order = await Order.get(id=order_id).prefetch_related("building", "important", "creator", "system",
+                                                                  "status")
+        except HTTPNotFoundError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'Order with id {order_id} not found!')
         if user_info['id'] == order.creator.id:
             return normal_prefetch(order)
         else:
@@ -127,7 +137,11 @@ async def update_order(order_id: int,
     order_dict = order.dict(exclude_unset=True)
     order_dict["modified_at"] = datetime.now(timezone.utc)
     if user_info['role'] == 'advanced_user':
-        order_obj = await Order.get(id=order_id).prefetch_related('creator')
+        try:
+            order_obj = await Order.get(id=order_id).prefetch_related('creator')
+        except HTTPNotFoundError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'Order with id {order_id} not found!')
         if user_info['id'] == order_obj.creator.id:
             await Order.filter(id=order_id).update(**order_dict)
             return await Order.get(id=order_id)
@@ -135,21 +149,32 @@ async def update_order(order_id: int,
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail='The user does not have access to the resource')
     else:
-        await Order.filter(id=order_id).update(**order_dict)
-        return await Order.get(id=order_id)
+        try:
+            await Order.filter(id=order_id).update(**order_dict)
+            return await Order.get(id=order_id)
+        except HTTPNotFoundError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'Order with id {order_id} not found!')
 
 
 @router_order.patch(
-    "/update-status/{order_id}", response_model=OrderSchemaRead, responses={404: {"model": HTTPNotFoundError}}
-)
+    "/update-status/{order_id}", response_model=OrderSchemaRead)
 async def update_status_order(order_id: int,
                               status_id: int,
                               token: HTTPAuthorizationCredentials = Depends(auth_schema),
                               permission: bool = Depends(
                                   PermissionChecker(required_permissions=['admin', 'advanced_user']))):
     user_info = decode_access_token(token)
-    status_obj = await Status.get(id=status_id)
-    order_obj = await Order.get(id=order_id)
+    try:
+        status_obj = await Status.get(id=status_id)
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Status with id {status_id} not found!')
+    try:
+        order_obj = await Order.get(id=order_id)
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'Order with id {order_id} not found!')
     if user_info['role'] == 'advanced_user':
         if user_info['id'] == order_obj.creator.id:
             await order_obj.update_from_dict({'status_id': status_id,
@@ -164,7 +189,7 @@ async def update_status_order(order_id: int,
         return await Order.get(id=order_id)
 
 
-@router_order.delete("/delete/{order_id}", responses={404: {"model": HTTPNotFoundError}})
+@router_order.delete("/delete/{order_id}")
 async def delete_order(order_id: int,
                        token: HTTPAuthorizationCredentials = Depends(auth_schema),
                        permission: bool = Depends(PermissionChecker(required_permissions=['admin', 'advanced_user']))):

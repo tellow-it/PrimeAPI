@@ -54,16 +54,23 @@ async def create_user(user: UserSchema,
     return user_obj
 
 
-@router_user.get("/{user_id}", response_model=UserSchemaRead,
-                 responses={404: {"model": HTTPNotFoundError}}, status_code=200)
+@router_user.get("/{user_id}", response_model=UserSchemaRead, status_code=200)
 async def get_user(user_id: int,
                    token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     user_info = decode_access_token(token)
     if user_info['role'] == 'admin':
-        return await User.get(id=user_id)
+        try:
+            return await User.get(id=user_id)
+        except HTTPNotFoundError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'User with id {user_id} not found!')
     else:
         if user_info['id'] == user_id:
-            return await User.get(id=user_id)
+            try:
+                return await User.get(id=user_id)
+            except HTTPNotFoundError:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail=f'User with id {user_id} not found!')
         else:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -71,20 +78,27 @@ async def get_user(user_id: int,
             )
 
 
-@router_user.put("/update/{user_id}", response_model=UserSchema, responses={404: {"model": HTTPNotFoundError}})
+@router_user.put("/update/{user_id}", response_model=UserSchema)
 async def update_user(user_id: int, user: UserSchema,
                       token: HTTPAuthorizationCredentials = Depends(auth_schema),
                       permission: bool = Depends(PermissionChecker(required_permissions=['admin']))):
-    await User.filter(id=user_id).update(**user.dict(exclude_unset=True))
-    return await User.get(id=user_id)
+    try:
+        await User.filter(id=user_id).update(**user.dict(exclude_unset=True))
+        return await User.get(id=user_id)
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'User with id {user_id} not found!')
 
 
-@router_user.patch("/update-password/{user_id}", response_model=UserSchema,
-                   responses={404: {"model": HTTPNotFoundError}})
+@router_user.patch("/update-password/{user_id}", response_model=UserSchema)
 async def update_password_user(user_id: int,
                                user_password: UserUpdatePassword,
                                token: HTTPAuthorizationCredentials = Depends(auth_schema)):
-    user_obj = await User.get(id=user_id)
+    try:
+        user_obj = await User.get(id=user_id)
+    except HTTPNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'User with id {user_id} not found!')
     if verify_password(user_password.password, user_obj.password):
         # password = generate_password()
         hashing_new_password = hashing_password(user_password.new_password)
