@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LoginSchema(BaseModel):
     telephone: str
-    password: str
+    password: str = Field(min_length=5)
 
 
 class TokenSchema(BaseModel):
