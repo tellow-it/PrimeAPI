@@ -28,7 +28,10 @@ async def get_buildings(on_page: Optional[int] = 10,
                         token: HTTPAuthorizationCredentials = Depends(auth_schema)):
     if search_by_building_name is None:
         quantity_buildings = await Building.all().count()
-        buildings = await Building.all().order_by(order_by_field).limit(on_page).offset(on_page * page)
+        if on_page == -1:
+            buildings = await Building.all().order_by(order_by_field)
+        else:
+            buildings = await Building.all().order_by(order_by_field).limit(on_page).offset(on_page * page)
     else:
         quantity_buildings = await Building.filter(building_name__icontains=search_by_building_name).all().count()
         buildings = await Building.filter(building_name__icontains=search_by_building_name). \
