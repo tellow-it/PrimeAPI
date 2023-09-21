@@ -13,7 +13,7 @@ COPY requirements.txt .
 
 # pip & requirements
 RUN python3 -m pip install --user --upgrade pip && \
-    python3 -m pip install -r requirements.txt 
+    python3 -m pip install -r requirements.txt && python3 -m pip install --upgrade 'sentry-sdk[fastapi]'
 
 COPY . .
 

@@ -5,11 +5,29 @@ from starlette.responses import JSONResponse
 from routers.base_router import main_router
 from core.config import settings
 from database.database import init_db
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://157f9b059e579c9dc7e9635b0a0ebadd@o4505918971576320.ingest.sentry.io/4505918977212416",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
 
 app = FastAPI(title=settings.PROJECT_NAME,
               version=settings.PROJECT_VERSION,
               description="API for creating tasks for company Prime",
               )
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 
 @app.on_event("startup")
